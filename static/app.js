@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const refreshBtn = document.getElementById('refresh-btn');
     const refreshSpinner = document.getElementById('refresh-spinner');
     const exportCsvBtn = document.getElementById('export-csv-btn');
+    const themeToggleInput = document.getElementById('theme-toggle-input');
     const feedList = document.getElementById('feed-list');
     const loadingView = document.getElementById('loading-view');
     const errorView = document.getElementById('error-view');
@@ -17,6 +18,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const emptyView = document.getElementById('empty-view');
     const searchInput = document.getElementById('search-input');
     const typeFilters = document.getElementById('type-filters');
+
+    // --- Theme Toggle ---
+    const savedTheme = localStorage.getItem('bq-theme');
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-mode');
+        themeToggleInput.checked = true;
+    }
+
+    themeToggleInput.addEventListener('change', () => {
+        if (themeToggleInput.checked) {
+            document.body.classList.add('light-mode');
+            localStorage.setItem('bq-theme', 'light');
+        } else {
+            document.body.classList.remove('light-mode');
+            localStorage.setItem('bq-theme', 'dark');
+        }
+    });
     
     // Tweet elements
     const floatingTweetBtn = document.getElementById('floating-tweet-btn');
