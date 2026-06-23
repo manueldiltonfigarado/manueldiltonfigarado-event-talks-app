@@ -33,6 +33,12 @@
             </div>
             
             <div class="header-actions">
+                <!-- Mobile Filters Toggle -->
+                <button id="filters-toggle-btn" class="btn btn-secondary filters-toggle" aria-label="Toggle filters">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Filters</span>
+                </button>
+
                 <!-- Theme Toggle -->
                 <div class="theme-toggle-wrapper" title="Toggle light / dark mode">
                     <i class="fa-solid fa-moon theme-icon" id="theme-icon"></i>
@@ -55,8 +61,11 @@
         </header>
 
         <main class="main-content">
+            <!-- Mobile sidebar backdrop -->
+            <div id="sidebar-backdrop" class="sidebar-backdrop hidden"></div>
+
             <!-- Sidebar / Control Panel -->
-            <aside class="glass-sidebar">
+            <aside class="glass-sidebar" id="glass-sidebar">
                 <div class="sidebar-section">
                     <h3>Search Notes</h3>
                     <div class="search-box">
@@ -108,6 +117,7 @@
                 <div id="empty-view" class="status-view hidden">
                     <i class="fa-solid fa-box-open empty-icon"></i>
                     <p>No release notes found matching your filters.</p>
+                    <button id="clear-search-btn" class="btn btn-secondary">Clear Search</button>
                 </div>
 
                 <div id="feed-list" class="feed-list hidden">
@@ -130,8 +140,9 @@
                 <button id="close-modal-btn" class="close-btn">&times;</button>
             </div>
             <div class="modal-body">
-                <textarea id="tweet-textarea" maxlength="280" placeholder="What's happening?"></textarea>
+                <textarea id="tweet-textarea" placeholder="What's happening?"></textarea>
                 <div class="tweet-metadata">
+                    <span id="tweet-warning" class="tweet-warning hidden">Tweet exceeds 280 characters</span>
                     <span id="char-counter">0 / 280</span>
                 </div>
             </div>

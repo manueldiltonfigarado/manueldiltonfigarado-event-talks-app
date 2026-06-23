@@ -682,13 +682,27 @@ body.light-mode #theme-icon-sun { color: #f59e0b; }
 
 .tweet-metadata {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 1.25rem;
+}
+
+.tweet-warning {
+    font-size: 0.8rem;
+    color: var(--color-deprecated);
+    font-weight: 500;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.modal-body textarea.over-limit {
+    border-color: var(--color-deprecated);
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
 }
 
 #char-counter {
     font-size: 0.8rem;
     color: var(--text-muted);
+    text-align: right;
 }
 
 .modal-footer {
@@ -725,15 +739,48 @@ body.light-mode #theme-icon-sun { color: #f59e0b; }
     }
 }
 
+/* Sidebar backdrop (mobile) */
+.sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 90;
+    animation: fadeIn 0.2s ease-out;
+}
+
+/* Hide filters toggle on desktop */
+.filters-toggle {
+    display: none;
+}
+
 /* Responsive design */
 @media (max-width: 900px) {
     .main-content {
         grid-template-columns: 1fr;
     }
+
+    /* Show the Filters toggle button */
+    .filters-toggle {
+        display: inline-flex;
+    }
+
+    /* Sidebar becomes a slide-in drawer on mobile */
     .glass-sidebar {
-        position: sticky;
-        top: 1rem;
-        z-index: 50;
+        position: fixed;
+        top: 0;
+        left: -320px;
+        width: 300px;
+        height: 100vh;
+        z-index: 100;
+        border-radius: 0 1.25rem 1.25rem 0;
+        overflow-y: auto;
+        padding-top: 2rem;
+        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .glass-sidebar.sidebar-open {
+        left: 0;
     }
 }
 
@@ -749,6 +796,11 @@ body.light-mode #theme-icon-sun { color: #f59e0b; }
     }
     .btn span {
         display: none;
+    }
+    /* Keep text visible on filters toggle and export */
+    .filters-toggle span,
+    #export-csv-btn span {
+        display: inline;
     }
     .btn {
         padding: 0.65rem 0.85rem;

@@ -16,8 +16,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const errorMessage = document.getElementById('error-message');
     const retryBtn = document.getElementById('retry-btn');
     const emptyView = document.getElementById('empty-view');
+    const clearSearchBtn = document.getElementById('clear-search-btn');
     const searchInput = document.getElementById('search-input');
     const typeFilters = document.getElementById('type-filters');
+    const sidebar = document.getElementById('glass-sidebar');
+    const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+    const filtersToggleBtn = document.getElementById('filters-toggle-btn');
 
     // --- Theme Toggle ---
     const savedTheme = localStorage.getItem('bq-theme');
@@ -35,6 +39,20 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('bq-theme', 'dark');
         }
     });
+
+    // --- Mobile Sidebar Drawer ---
+    function openSidebar() {
+        sidebar.classList.add('sidebar-open');
+        sidebarBackdrop.classList.remove('hidden');
+    }
+    function closeSidebar() {
+        sidebar.classList.remove('sidebar-open');
+        sidebarBackdrop.classList.add('hidden');
+    }
+    filtersToggleBtn.addEventListener('click', () => {
+        sidebar.classList.contains('sidebar-open') ? closeSidebar() : openSidebar();
+    });
+    sidebarBackdrop.addEventListener('click', closeSidebar);
     
     // Tweet elements
     const floatingTweetBtn = document.getElementById('floating-tweet-btn');
@@ -44,6 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendTweetBtn = document.getElementById('send-tweet-btn');
     const tweetTextarea = document.getElementById('tweet-textarea');
     const charCounter = document.getElementById('char-counter');
+    const tweetWarning = document.getElementById('tweet-warning');
 
     // Fetch and parse the release notes
     async function fetchReleaseNotes() {
@@ -54,10 +73,10 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch('/api/releases');
             if (!response.ok) {
-                throw new Error(`HTTP Error: ${response.status}`);
+                throw new Error(`HTTP_${response.status}`);
             }
             const data = await response.json();
-            
+
             if (data.error) {
                 throw new Error(data.error);
             }
@@ -66,7 +85,17 @@ document.addEventListener('DOMContentLoaded', () => {
             renderFeed();
         } catch (error) {
             console.error('Error fetching release notes:', error);
-            errorMessage.textContent = error.message || 'Failed to fetch release notes.';
+            // Show friendly message to users, keep raw error in console only
+            const msg = error.message || '';
+            if (msg.startsWith('HTTP_5') || msg.includes('fetch')) {
+                errorMessage.textContent = 'We couldn\'t load the release notes right now. The Google feed may be temporarily unavailable. Please try again in a moment.';
+            } else if (msg.startsWith('HTTP_4')) {
+                errorMessage.textContent = 'The release notes feed could not be found. Please check your connection and try again.';
+            } else if (msg.toLowerCase().includes('network') || msg.toLowerCase().includes('failed to fetch')) {
+                errorMessage.textContent = 'No internet connection detected. Please check your network and hit Retry.';
+            } else {
+                errorMessage.textContent = 'Something went wrong while loading the release notes. Please try refreshing the page.';
+            }
             showView('error');
         } finally {
             refreshSpinner.classList.remove('spinning');
@@ -282,12 +311,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateCharCounter() {
         const length = tweetTextarea.value.length;
-        charCounter.textContent = `${length} / 280`;
+        const remaining = 280 - length;
+        charCounter.textContent = remaining >= 0
+            ? `${length} / 280`
+            : `${Math.abs(remaining)} over limit`;
+
         if (length > 280) {
             charCounter.style.color = 'var(--color-deprecated)';
+            tweetTextarea.classList.add('over-limit');
+            tweetWarning.classList.remove('hidden');
             sendTweetBtn.disabled = true;
         } else {
             charCounter.style.color = 'var(--text-muted)';
+            tweetTextarea.classList.remove('over-limit');
+            tweetWarning.classList.add('hidden');
             sendTweetBtn.disabled = false;
         }
     }
@@ -333,6 +370,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // Interactive event listeners
     refreshBtn.addEventListener('click', fetchReleaseNotes);
     retryBtn.addEventListener('click', fetchReleaseNotes);
+
+    // Clear search from empty state
+    clearSearchBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        searchQuery = '';
+        renderFeed();
+    });
+
+    // Escape key closes modal
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !tweetModal.classList.contains('hidden')) {
+            tweetModal.classList.add('hidden');
+        }
+    });
 
     // Search query listener
     searchInput.addEventListener('input', (e) => {
@@ -416,25 +467,39 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const escapeCSV = (str) => `"${String(str).replace(/"/g, '""')}"`;
+        // Show exporting feedback
+        const originalHTML = exportCsvBtn.innerHTML;
+        exportCsvBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Exporting...';
+        exportCsvBtn.disabled = true;
 
-        const headers = ['Date', 'Type', 'Summary', 'Link'];
-        const rows = filtered.map(note => [
-            escapeCSV(note.date),
-            escapeCSV(note.typeName),
-            escapeCSV(note.textContent),
-            escapeCSV(note.link)
-        ].join(','));
+        setTimeout(() => {
+            const escapeCSV = (str) => `"${String(str).replace(/"/g, '""')}"`;
+            const headers = ['Date', 'Type', 'Summary', 'Link'];
+            const rows = filtered.map(note => [
+                escapeCSV(note.date),
+                escapeCSV(note.typeName),
+                escapeCSV(note.textContent),
+                escapeCSV(note.link)
+            ].join(','));
 
-        const csvContent = [headers.join(','), ...rows].join('\n');
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
+            const csvContent = [headers.join(','), ...rows].join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `bigquery-release-notes-${new Date().toISOString().slice(0, 10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
 
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `bigquery-release-notes-${new Date().toISOString().slice(0, 10)}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
+            // Show success state
+            exportCsvBtn.innerHTML = '<i class="fa-solid fa-check"></i> Exported!';
+            exportCsvBtn.classList.add('btn-copied');
+            setTimeout(() => {
+                exportCsvBtn.innerHTML = originalHTML;
+                exportCsvBtn.classList.remove('btn-copied');
+                exportCsvBtn.disabled = false;
+            }, 2000);
+        }, 300);
     }
 
     exportCsvBtn.addEventListener('click', exportToCSV);
