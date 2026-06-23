@@ -105,6 +105,20 @@ body.light-mode #theme-icon-sun { color: #f59e0b; }
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
+.logo-link {
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    align-items: center;
+    border-radius: 0.75rem;
+    transition: var(--transition-smooth);
+}
+
+.logo-link:hover {
+    opacity: 0.85;
+    transform: scale(1.02);
+}
+
 .logo-area {
     display: flex;
     align-items: center;
