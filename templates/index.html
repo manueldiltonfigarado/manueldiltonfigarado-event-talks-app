@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BigQuery Release Notes Hub</title>
+    
+    <!-- Premium Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Plain vanilla style sheet -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="glow-bg"></div>
+    
+    <div class="app-container">
+        <!-- Header -->
+        <header class="glass-header">
+            <div class="logo-area">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-database"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>BigQuery</h1>
+                    <span class="sub-logo">Release Notes Tracker</span>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <button id="refresh-btn" class="btn btn-primary">
+                    <i id="refresh-spinner" class="fa-solid fa-rotate"></i>
+                    <span>Refresh</span>
+                </button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- Sidebar / Control Panel -->
+            <aside class="glass-sidebar">
+                <div class="sidebar-section">
+                    <h3>Search Notes</h3>
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="search-input" placeholder="Search keywords...">
+                    </div>
+                </div>
+                
+                <div class="sidebar-section">
+                    <h3>Filter by Type</h3>
+                    <div class="filter-group" id="type-filters">
+                        <label class="filter-item checked" data-type="all">
+                            <span class="dot all"></span> All Notes
+                        </label>
+                        <label class="filter-item" data-type="Feature">
+                            <span class="dot feature"></span> Features
+                        </label>
+                        <label class="filter-item" data-type="Change">
+                            <span class="dot change"></span> Changes
+                        </label>
+                        <label class="filter-item" data-type="Deprecated">
+                            <span class="dot deprecated"></span> Deprecations
+                        </label>
+                        <label class="filter-item" data-type="General">
+                            <span class="dot general"></span> General/Other
+                        </label>
+                    </div>
+                </div>
+
+                <div class="sidebar-section info-section">
+                    <h4><i class="fa-solid fa-lightbulb"></i> How to Tweet</h4>
+                    <p>Click the <strong><i class="fa-brands fa-x-twitter"></i> Tweet</strong> button on any note, or highlight/select text on the page to tweet that specific selection.</p>
+                </div>
+            </aside>
+
+            <!-- Main Feed -->
+            <section class="feed-container">
+                <div id="loading-view" class="status-view">
+                    <div class="loading-ring"><div></div><div></div><div></div><div></div></div>
+                    <p>Fetching BigQuery updates...</p>
+                </div>
+
+                <div id="error-view" class="status-view hidden">
+                    <i class="fa-solid fa-circle-exclamation error-icon"></i>
+                    <p id="error-message">Something went wrong.</p>
+                    <button id="retry-btn" class="btn btn-secondary">Retry</button>
+                </div>
+
+                <div id="empty-view" class="status-view hidden">
+                    <i class="fa-solid fa-box-open empty-icon"></i>
+                    <p>No release notes found matching your filters.</p>
+                </div>
+
+                <div id="feed-list" class="feed-list hidden">
+                    <!-- Release notes injected dynamically -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Floating Tweet Selection Button -->
+    <button id="floating-tweet-btn" class="floating-btn hidden">
+        <i class="fa-brands fa-x-twitter"></i> Tweet Selection
+    </button>
+
+    <!-- Tweet Modal -->
+    <div id="tweet-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-modal">
+            <div class="modal-header">
+                <h2><i class="fa-brands fa-x-twitter"></i> Compose Tweet</h2>
+                <button id="close-modal-btn" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <textarea id="tweet-textarea" maxlength="280" placeholder="What's happening?"></textarea>
+                <div class="tweet-metadata">
+                    <span id="char-counter">0 / 280</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-tweet-btn" class="btn btn-secondary">Cancel</button>
+                <button id="send-tweet-btn" class="btn btn-twitter">
+                    <i class="fa-brands fa-x-twitter"></i> Post
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
