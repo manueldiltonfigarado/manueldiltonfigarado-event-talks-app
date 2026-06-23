@@ -353,6 +353,7 @@ body {
 .card-actions {
     display: flex;
     justify-content: flex-end;
+    gap: 0.5rem;
     margin-top: 1rem;
     padding-top: 0.75rem;
     border-top: 1px solid var(--border-color);
@@ -403,6 +404,13 @@ body {
 .btn-twitter:hover {
     background-color: var(--color-twitter-hover);
     transform: translateY(-1px);
+}
+
+.btn-copied {
+    background: rgba(16, 185, 129, 0.15) !important;
+    color: var(--color-feature) !important;
+    border-color: rgba(16, 185, 129, 0.3) !important;
+    pointer-events: none;
 }
 
 /* Floating Actions */

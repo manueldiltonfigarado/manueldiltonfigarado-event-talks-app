@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
     const refreshBtn = document.getElementById('refresh-btn');
     const refreshSpinner = document.getElementById('refresh-spinner');
+    const exportCsvBtn = document.getElementById('export-csv-btn');
     const feedList = document.getElementById('feed-list');
     const loadingView = document.getElementById('loading-view');
     const errorView = document.getElementById('error-view');
@@ -191,6 +192,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${note.htmlContent}
                 </div>
                 <div class="card-actions">
+                    <button class="btn btn-secondary copy-card-btn" data-id="${note.id}" title="Copy to clipboard">
+                        <i class="fa-regular fa-copy"></i> Copy
+                    </button>
                     <button class="btn btn-secondary tweet-card-btn" data-id="${note.id}">
                         <i class="fa-brands fa-x-twitter"></i> Tweet
                     </button>
@@ -207,6 +211,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (note) {
                     composeTweetFromNote(note);
                 }
+            });
+        });
+
+        // Copy to clipboard listeners
+        document.querySelectorAll('.copy-card-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const noteId = e.currentTarget.getAttribute('data-id');
+                const note = releaseNotes.find(n => n.id === noteId);
+                if (!note) return;
+
+                const textToCopy = `BigQuery Update — ${note.date} (${note.typeName})\n\n${note.textContent}\n\nMore details: ${note.link}`;
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    const icon = btn.querySelector('i');
+                    const original = btn.innerHTML;
+                    btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+                    btn.classList.add('btn-copied');
+                    setTimeout(() => {
+                        btn.innerHTML = original;
+                        btn.classList.remove('btn-copied');
+                    }, 2000);
+                }).catch(() => {
+                    alert('Failed to copy to clipboard.');
+                });
             });
         });
 
@@ -354,6 +381,45 @@ document.addEventListener('DOMContentLoaded', () => {
         window.open(twitterUrl, '_blank', 'noopener,noreferrer');
         tweetModal.classList.add('hidden');
     });
+
+    // Export CSV functionality
+    function exportToCSV() {
+        const filtered = releaseNotes.filter(note => {
+            const matchesType = selectedTypeFilter === 'all' || note.type === selectedTypeFilter;
+            const matchesSearch = searchQuery === '' ||
+                note.date.toLowerCase().includes(searchQuery) ||
+                note.typeName.toLowerCase().includes(searchQuery) ||
+                note.textContent.toLowerCase().includes(searchQuery);
+            return matchesType && matchesSearch;
+        });
+
+        if (filtered.length === 0) {
+            alert('No notes to export. Try adjusting your filters.');
+            return;
+        }
+
+        const escapeCSV = (str) => `"${String(str).replace(/"/g, '""')}"`;
+
+        const headers = ['Date', 'Type', 'Summary', 'Link'];
+        const rows = filtered.map(note => [
+            escapeCSV(note.date),
+            escapeCSV(note.typeName),
+            escapeCSV(note.textContent),
+            escapeCSV(note.link)
+        ].join(','));
+
+        const csvContent = [headers.join(','), ...rows].join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `bigquery-release-notes-${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    exportCsvBtn.addEventListener('click', exportToCSV);
 
     // Initial load
     fetchReleaseNotes();
